@@ -1,41 +1,35 @@
-import Head from "next/head";
 import Link from "next/link";
-import Date from "../components/date";
-import Layout, { siteTitle } from "../components/layout";
-import { getSortedPostsData } from "../lib/posts";
-import utilStyles from "../styles/utils.module.css";
+import { useState } from "react";
+import { getPosts } from "../lib/posts";
 
 export async function getStaticProps() {
-    const allPostsData = getSortedPostsData();
+    const posts = await getPosts();
+
     return {
         props: {
-            allPostsData,
+            posts,
         },
     };
 }
 
-export default function Home({ allPostsData }) {
-    return (
-        <Layout home>
-            <Head>
-                <title>{siteTitle}</title>
-            </Head>
-            <section
-                className={`${utilStyles.headingMd} ${utilStyles.padding1px}`}
-            >
-                <h2 className={utilStyles.headingLg}>All Blogs</h2>
-                <ul className={utilStyles.list}>
-                    {allPostsData.map(({ id, date, title }) => (
-                        <li className={utilStyles.listItem} key={id}>
-                            <Link href={`/posts/${id}`}>{title}</Link>
-                            <br />
-                            <small className={utilStyles.lightText}>
-                                <Date dateString={date} />
-                            </small>
-                        </li>
-                    ))}
-                </ul>
-            </section>
-        </Layout>
-    );
+export default function Home({ posts }) {
+    const [loading, setLoading] = useState(false);
+
+    let content = null;
+
+    if (posts?.length > 0) {
+        content = posts.map((post, i) => (
+            <ul key={i}>
+                <li>
+                    <Link href={`/posts/${post.id}`}>{post.title}</Link>
+                </li>
+            </ul>
+        ));
+    }
+
+    if (posts?.length === 0) {
+        content = <p>Empty post!</p>;
+    }
+
+    return content;
 }
